@@ -1,0 +1,41 @@
+body {
+    background-color: #1a1a1a;
+    color: #00ff00;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 16px;
+    margin: 0;
+    padding: 1rem;
+}
+
+#terminal {
+    height: calc(100vh - 2rem);
+    width: 100%;
+    box-sizing: border-box;
+    overflow-y: auto;
+    cursor: text;
+}
+
+#output {
+    white-space: pre-wrap;
+}
+
+.input-line {
+    display: flex;
+    align-items: center;
+}
+
+#prompt {
+    margin-right: 8px;
+    white-space: nowrap;
+}
+
+#input {
+    background-color: transparent;
+    border: none;
+    color: #00ff00;
+    font-family: inherit;
+    font-size: inherit;
+    width: 100%;
+    outline: none;
+    caret-color: #00ff00;
+}

@@ -1,0 +1,34 @@
+version: '3.8'
+
+services:
+  # Layanan aplikasi Node.js
+  app:
+    build: .
+    ports:
+      - "3000:3000"
+    environment:
+      MONGODB_URI: mongodb://mongo:27017/terminaldb
+    depends_on:
+      - mongo
+    volumes:
+      - ./app:/usr/src/app 
+      - /usr/src/app/node_modules
+
+  # Layanan database MongoDB
+  mongo:
+    image: mongo:latest
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+
+  # Layanan Cloudflare
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    restart: unless-stopped
+    command: tunnel --no-autoupdate run --token ${TUNNEL_TOKEN}
+    environment:
+      - TUNNEL_TOKEN=${TUNNEL_TOKEN}
+
+volumes:
+  mongo-data:
