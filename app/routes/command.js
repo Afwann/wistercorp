@@ -2,6 +2,8 @@ const express = require("express");
 const router = express.Router();
 const File = require("../models/file");
 
+// --- HELPER FUNCTIONS ---
+
 async function getPath(nodeId) {
   if (!nodeId) return "/";
   let path_arr = [];
@@ -24,6 +26,8 @@ function formatLsL(item) {
   const size = String(item.size).padStart(6, " ");
   return `${item.permissions} 1 ${item.owner} ${item.group} ${size} ${month} ${day} ${time} ${item.name}`;
 }
+
+// --- API ROUTES ---
 
 router.post("/autocomplete", async (req, res) => {
   const { partial, cwdId } = req.body;
@@ -49,18 +53,42 @@ router.post("/execute", async (req, res) => {
   const cmd = parts[0].toLowerCase();
   const args = parts.slice(1);
   const { cwdId } = req.body;
+
   try {
+    // Standard commands are handled in a separate function
+    if (["ls", "cat", "cd", "pwd"].includes(cmd)) {
+      return await handleStandardCommands(cmd, args, cwdId, res);
+    }
+
+    // Honeypot commands
     switch (cmd) {
-      case "ls":
-      case "cat":
-      case "cd":
-      case "pwd":
-        return await handleStandardCommands(cmd, args, cwdId, res);
+      case "open":
+        if (!args[0]) return res.json({ output: "open: missing file operand" });
+        const fileToOpen = await File.findOne({
+          name: args[0],
+          parentId: cwdId,
+          type: "file",
+        });
+        if (!fileToOpen)
+          return res.json({
+            output: `open: cannot open file '${args[0]}': No such file`,
+          });
+        if (fileToOpen.url)
+          return res.json({
+            action: "open_modal",
+            url: fileToOpen.url,
+            filename: fileToOpen.name,
+            message: `Opening ${args[0]}...`,
+          });
+        else
+          return res.json({
+            output: `open: '${args[0]}' is a text file. Please use 'cat' instead.`,
+          });
 
       case "rm":
-        const flags = args.filter((arg) => arg.startsWith("-")).join("");
-        const isRecursive = flags.includes("r");
-        const isForced = flags.includes("f");
+        const flagsRm = args.filter((arg) => arg.startsWith("-")).join("");
+        const isRecursive = flagsRm.includes("r");
+        const isForced = flagsRm.includes("f");
         const target = args.filter((arg) => !arg.startsWith("-"))[0];
         if (isRecursive && isForced && target === "/") {
           return res.json({
@@ -108,19 +136,17 @@ router.post("/execute", async (req, res) => {
       case "uname":
         return res.json({
           output:
-            "Linux OMNICORP-PFS-01 5.10.0-16-amd64 #1 SMP Debian 5.10.127-1 (2025-07-06) x86_64",
+            "Linux WISTERCORP-PFS-01 5.10.0-16-amd64 #1 SMP Debian 5.10.127-1 (2025-07-07) x86_64",
         });
       case "passwd":
         return res.json({
           output: `[ ACTION LOGGED ] Changing password for guest.\nNew password policy: Must be >128 chars, contain three emojis, a character from a dead language, and the soul of a unicorn.\nYour attempt does not meet these criteria.`,
         });
-
       case "id":
         return res.json({
           output:
             "uid=1001(guest) gid=1001(guest) groups=1001(guest),27(sudo),999(docker)\nWait... why are you in the sudo group? That shouldn't be right. Anomaly detected.",
         });
-
       case "ps":
         if (args.includes("aux")) {
           return res.json({
@@ -137,7 +163,6 @@ router.post("/execute", async (req, res) => {
         return res.json({
           output: `PID   TTY   TIME CMD\n9002 pts/0 00:00:01 bash\n9051 pts/0 00:00:00 ps`,
         });
-
       case "netstat":
       case "ss":
         if (args.includes("-antp") || args.includes("-tulpn")) {
@@ -152,7 +177,6 @@ router.post("/execute", async (req, res) => {
           });
         }
         return res.json({ output: "COMMAND-LINE-ARGUMENT-REQUIRED" });
-
       case "history":
         return res.json({
           output:
@@ -162,7 +186,6 @@ router.post("/execute", async (req, res) => {
             `    4  sudo rm -rf /var/www/html/test_site/ oops_wrong_dir\n` +
             `    5  history`,
         });
-
       case "":
         return res.json({ output: "" });
       default:
@@ -228,36 +251,45 @@ async function handleStandardCommands(cmd, args, cwdId, res) {
       }
       return res.json({ output: file.content });
     case "cd":
-      if (args.length === 0 || args[0] === "~") {
+      const targetRaw = args[0];
+      if (!targetRaw || targetRaw === "~" || targetRaw === "~/") {
         const home = await File.findOne({ name: "home", type: "directory" });
         const guest = await File.findOne({ name: "guest", parentId: home._id });
         const newPath = await getPath(guest._id);
         return res.json({ newCwdId: guest._id, path: newPath });
       }
-      const targetPath = args[0];
-      if (targetPath === "..") {
-        const currentDir = await File.findById(cwdId);
-        const newCwdId =
-          currentDir && currentDir.parentId ? currentDir.parentId : cwdId;
-        const newPath = await getPath(newCwdId);
-        return res.json({ newCwdId, path: newPath });
-      }
-      if (targetPath === "/") {
+      let pathComponents = targetRaw
+        .replace(/\/$/, "")
+        .split("/")
+        .filter((p) => p);
+      let currentDirId;
+      if (targetRaw.startsWith("/")) {
         const root = await File.findOne({ parentId: null });
-        return res.json({ newCwdId: root._id, path: "/" });
+        currentDirId = root._id;
+      } else {
+        currentDirId = cwdId;
       }
-      const targetDir = await File.findOne({
-        name: targetPath,
-        parentId: cwdId,
-        type: "directory",
-      });
-      if (!targetDir) {
-        return res.json({
-          output: `cd: ${targetPath}: No such directory or it is a file`,
+      for (const component of pathComponents) {
+        if (component === "..") {
+          const parentDir = await File.findById(currentDirId);
+          if (parentDir && parentDir.parentId)
+            currentDirId = parentDir.parentId;
+          continue;
+        }
+        if (component === "." || component === "") continue;
+        const nextDir = await File.findOne({
+          name: component,
+          parentId: currentDirId,
+          type: "directory",
         });
+        if (!nextDir)
+          return res.json({
+            output: `cd: ${targetRaw}: No such file or directory`,
+          });
+        currentDirId = nextDir._id;
       }
-      const newPath = await getPath(targetDir._id);
-      return res.json({ newCwdId: targetDir._id, path: newPath });
+      const newPath = await getPath(currentDirId);
+      return res.json({ newCwdId: currentDirId, path: newPath });
     case "pwd":
       const absolutePath = await getPath(cwdId);
       return res.json({ output: absolutePath });

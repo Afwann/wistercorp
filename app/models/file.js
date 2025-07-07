@@ -4,12 +4,12 @@ const fileSchema = new mongoose.Schema({
   name: { type: String, required: true },
   type: { type: String, enum: ["file", "directory"], required: true },
   content: { type: String, default: "" },
+  url: { type: String, default: null },
   parentId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "File",
     default: null,
   },
-
   permissions: { type: String, default: "-rw-r--r--" },
   owner: { type: String, default: "guest" },
   group: { type: String, default: "guest" },

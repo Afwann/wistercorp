@@ -1,3 +1,4 @@
+/* === TERMINAL STYLE === */
 body {
     background-color: #1a1a1a;
     color: #00ff00;
@@ -9,7 +10,7 @@ body {
 
 #terminal {
     height: calc(100vh - 2rem);
-    width: 100%;
+    width: calc(100vw - 2rem);
     box-sizing: border-box;
     overflow-y: auto;
     cursor: text;
@@ -17,6 +18,7 @@ body {
 
 #output {
     white-space: pre-wrap;
+    word-break: break-word;
 }
 
 .input-line {
@@ -27,6 +29,7 @@ body {
 #prompt {
     margin-right: 8px;
     white-space: nowrap;
+    color: #4AF626;
 }
 
 #input {
@@ -38,4 +41,90 @@ body {
     width: 100%;
     outline: none;
     caret-color: #00ff00;
+}
+
+.prompt-clone {
+    color: #4AF626;
+}
+
+/* === MODAL PDF STYLE === */
+#modal-overlay {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(0, 0, 0, 0.85);
+    z-index: 1000;
+    display: none; /* Hidden by default */
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    padding: 20px;
+    box-sizing: border-box;
+}
+
+#modal-overlay.active {
+    display: flex;
+}
+
+#modal-header {
+    width: 90vw;
+    max-width: 800px; 
+    padding-bottom: 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+#modal-download-btn {
+    background-color: #00ff00;
+    color: #1a1a1a;
+    padding: 5px 15px;
+    text-decoration: none;
+    border-radius: 3px;
+    font-weight: bold;
+}
+
+#modal-download-btn:hover {
+    background-color: #88ff88;
+}
+
+#modal-close {
+    color: #fff;
+    font-size: 35px;
+    cursor: pointer;
+    line-height: 1;
+}
+
+#modal-close:hover {
+    color: #ccc;
+}
+
+/* Kotak Luar (Abu-abu) - Bingkai Utama */
+#modal-content-wrapper {
+    background-color: #2b2b2b;
+    padding: 5px;
+    border: 1px solid #444;
+    width: 90vw;
+    max-width: 800px;
+    max-height: 90vh;
+    aspect-ratio: 1 / 1.414; /* Rasio potret seperti kertas A4 */
+    box-sizing: border-box;
+}
+
+/* --- PERBAIKAN DI SINI: ATURAN YANG HILANG --- */
+/* Kotak Ibu (Penengah) - Memberitahunya untuk mengisi Kotak Nenek */
+#modal-content {
+    width: 100%;
+    height: 100%;
+}
+
+
+/* Kotak Dalam (Tempat PDF) - Memberitahunya untuk mengisi Kotak Ibu */
+#modal-content iframe,
+#modal-content embed {
+    width: 100%;
+    height: 100%;
+    border: none;
+    background-color: #fff;
 }

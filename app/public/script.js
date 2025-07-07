@@ -5,6 +5,11 @@ document.addEventListener("DOMContentLoaded", async () => {
   const promptSpan = document.getElementById("prompt");
   const API_URL = "/api";
 
+  const modalOverlay = document.getElementById("modal-overlay");
+  const modalContent = document.getElementById("modal-content");
+  const modalClose = document.getElementById("modal-close");
+  const modalDownloadBtn = document.getElementById("modal-download-btn");
+
   let cwdId = null;
   let commandHistory = [];
   let historyIndex = -1;
@@ -70,9 +75,19 @@ document.addEventListener("DOMContentLoaded", async () => {
       }
     } catch (error) {
       printOutput("Error initializing terminal. Could not connect to backend.");
-      console.error(error);
     }
   }
+
+  function closeModal() {
+    modalOverlay.classList.remove("active");
+    modalContent.innerHTML = "";
+  }
+  modalClose.addEventListener("click", closeModal);
+  modalOverlay.addEventListener("click", (e) => {
+    if (e.target.id === "modal-overlay") {
+      closeModal();
+    }
+  });
 
   async function handleAutocomplete() {
     const partialCommand = input.value;
@@ -94,50 +109,92 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
   input.addEventListener("keydown", async (e) => {
+    if (e.key === "Escape") {
+      closeModal();
+    }
     if (e.key === "Enter") {
       const command = input.value.trim();
       printCommand(command);
-
       if (command) {
         if (commandHistory[0] !== command) {
           commandHistory.unshift(command);
           if (commandHistory.length > 50) commandHistory.pop();
         }
         historyIndex = -1;
-
         if (command === "clear") {
           outputDiv.innerHTML = "";
         } else if (command === "help") {
-          const helpText = `WISTERCORP Proprietary Shell (WPS), version 1.3.3.7
-These shell commands are defined internally for guest users.
+          const helpText = `
 
-Standard Commands:
-ls [-al]        List directory contents
-ll              Alias for 'ls -la'
-cat [file]      Display file content
-cd [dir]        Change directory
-pwd             Print name of current working directory
-clear           Clear the terminal screen
-history         Display command history
-help            Display this help message
+A weary note from your friendly neighborhood SysAdmin...
 
-Note: This is a list of officially supported commands. Use of any other
-commands, especially those related to system modification, network
-reconnaissance, or privilege escalation, is a violation of WISTERCORP
-Acceptable Use Policy A-113 and will be logged for review.`;
+Look, WISTERCORP Legal makes me show you the big scary warning when you log in.
+Here's the real deal. You have access to a few basic commands to look around.
+
+  ls [-al]    - See what's here.
+  ll          - See what's here, but fancier.
+  cd [dir]    - Go somewhere else.
+  cat [file]  - Read something. Probably boring.
+  pwd         - In case you get lost.
+  open [file] - If you're lucky, it might just work on a PDF.
+  clear       - Tidy up the place.
+  help        - You're reading it.
+
+Shell Pro-Tips:
+  - The [Tab] key is your best friend. Use it. It saves me from having
+    to decipher your typos.
+  - [cd] is smarter than it looks. It handles absolute paths (/home/guest),
+    multi-level jumps (../../..), and typing [cd] alone teleports you home.
+
+--- Undocumented Features (Don't tell Legal I showed you this) ---
+Here are a few extra commands I probably shouldn't be telling you about.
+But let's be honest, you were going to try them anyway, weren't you?
+
+  uname       - See what fancy Linux box you're about to fail at hacking.
+  id          - Check your 'privileges'. They might surprise you.
+  ps aux      - See what ghosts are running in the machine.
+  whoami      - For when you have an existential crisis.
+  netstat     - See all the interesting places this server isn't talking to.
+
+Everything you do is logged. Yes, even that. My server is already full of
+'rm -rf /' attempts from last week. Try to be original, at least.
+
+If you manage to break something, the system will file a ticket automatically.
+My response time is somewhere between 'next Tuesday' and 'the heat death of
+the universe'. Good luck.
+
+P.S. There are even more commands that aren't on *either* of these lists. Happy hunting.
+
+`;
           printOutput(helpText);
         } else {
           const result = await executeCommand(command);
-          if (result.output || result.output === "") {
+
+          // --- BLOK LOGIKA 'open_modal' YANG DIPERBAIKI TOTAL ---
+          if (result.action === "open_modal") {
+            // Cek apakah file adalah PDF
+            if (/\.pdf$/i.test(result.url)) {
+              // --- PERUBAHAN UTAMA: Menggunakan <embed> bukan <iframe> ---
+              modalContent.innerHTML = `<embed src="${result.url}" type="application/pdf" width="100%" height="100%" />`;
+            } else {
+              // Jika bukan PDF, tampilkan pesan error di dalam modal
+              modalContent.innerHTML = `<p style="color:white; padding: 2em; text-align: center;">Preview for this file type is not available.<br><br>Please use the download button.</p>`;
+            }
+
+            modalDownloadBtn.href = result.url;
+            modalDownloadBtn.download = result.filename;
+            modalOverlay.classList.add("active");
+            printOutput(result.message);
+          } else if (result.output || result.output === "") {
             printOutput(result.output);
           }
+
           if (result.newCwdId) {
             cwdId = result.newCwdId;
             updatePrompt(result.path);
           }
         }
       }
-
       input.value = "";
       terminal.scrollTop = terminal.scrollHeight;
     } else if (e.key === "ArrowUp") {
@@ -148,12 +205,9 @@ Acceptable Use Policy A-113 and will be logged for review.`;
       }
     } else if (e.key === "ArrowDown") {
       e.preventDefault();
-      if (historyIndex > 0) {
+      if (historyIndex >= 0) {
         historyIndex--;
-        input.value = commandHistory[historyIndex];
-      } else {
-        historyIndex = -1;
-        input.value = "";
+        input.value = historyIndex === -1 ? "" : commandHistory[historyIndex];
       }
     } else if (e.key === "Tab") {
       e.preventDefault();
