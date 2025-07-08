@@ -141,7 +141,7 @@ trusted to lead System Administrator Documentation in National-Level project for
 Network ) by the Campus Network Engineer. Actively contributing in OS and Backend Development as a teacher in
 IT communities. Continually exploring technologies used in Cloud Computing, DevOps,  CI/CD While implementing
 laboratory project. Currently looking for a DevOps / Network Engineering / Cybersecurity internship to expand my contributions
-more and deliver greater solutions for thepublic community.
+more and deliver greater solutions for the public community.
 
 maybe my portofolio mostly are cloud computing and network related,
 but I've recently picked a new hobby: cybersecurity. This terminal is the result.
@@ -175,68 +175,69 @@ This is the "main" file structure of my web
 /home/guest/
 ├── .motd                 
 ├── .ssh/                 
-│
+├── tree.txt
 ├── README.md             
 ├── Projects/
 │   ├── freshgrade.txt
 │   └── pastebox.txt
 │
 ├── Documents/            
-│   ├── Work_Experience
+│   ├── Work_Experience/
 │   │     └── Filkom_UB
 │   │        ├── operating_system.pdf
 │   │        └── network.pdf
-│   ├── Programs
-│   │    ├── MSIB
+│   ├── Programs/
+│   │    ├── MSIB/
 │   │    │   └── certificate.pdf
-│   │    ├── Bangkit
+│   │    ├── Bangkit/
 │   │    │   ├── distinction_Letter.pdf
-│   │    │   ├── english_for_bussiness_communication.pdf 
+│   │    │   ├── english_for_bussiness_communication.pdf
 │   │    │   ├── interim_transcript.pdf
 │   │    │   └── certificate_of_completion.pdf
-│   │    └── APIE
+│   │    └── APIE/
 │   │        └── blended_learning.pdf
-│   ├── Volunteer
+│   ├── Volunteer/
 │   │    ├── Orientation_Assistant.pdf
 │   │    └── IT_Gemastik_XVI.pdf
 │   └── education.txt
 │
 ├── Certificates/
-│   ├── Dicoding
-│   │   ├── Google_cloud_professional
-│   │   │     ├── BDGC_basic.pdf
+│   ├── Dicoding/
+│   │   ├── Google_cloud_professional/
 │   │   │     ├── BDPJ_basic.pdf
-│   │   │     ├── BEGC_basic.pdf
+│   │   │     ├── BEGC_beginner.pdf
 │   │   │     └── MGCE_intermediate.pdf
-│   │   ├── Devops_Engineer
+│   │   ├── Devops_Engineer/
 │   │   │     ├── BDDD_basic.pdf
-│   │   │     ├── BJKUP_basic.pdf
+│   │   │     ├── BJKUP_beginner.pdf  
 │   │   │     ├── MLSA_intermediate.pdf
 │   │   │     ├── BICICD_intermediate.pdf
 │   │   │     └── BMAM_proficient.pdf
-│   │   └── Backend_Engineer
+│   │   └── Backend_Engineer/
 │   │         ├── BDGC_basic.pdf
 │   │         ├── BDPJ_basic.pdf
-│   │         ├── BEGC_basic.pdf
-│   │         └── MGCE_intermediate.pdf
-│   ├── Cisco
+│   │         ├── BBEPJ_beginner.pdf
+│   │         └── 
+│   ├── Cisco/
 │   │   ├── Cybersec.pdf
 │   │   ├── Networking_Basics.pdf
 │   │   └── Networking_Devices_Config.pdf
-│   ├── Microsoft
+│   ├── Microsoft/
 │   │   └── SC_900.pdf
-│   ├── SOI
+│   ├── SOI/
 │   │   └── blended_learning.pdf
-│   ├── COURSERA
+│   ├── Coursera/
 │   │    ├── Google_IT_Support.pdf
 │   │    └── Google_Cybersecurity.pdf
-│   ├── APNIC
+│   ├── APNIC/
 │   │    └── Routing_fundamentals.pdf
+│   ├── GCSB/
+│   │    └── too_many_files.txt
 │   └── public_profile.txt
 ├── contact.txt
 └── Organizations
     └── POROS 
-        └── statement_of_organizational_activity.pdf
+        └── statement_of_organizational_activity.pdf x
 
       `,
     });
@@ -749,6 +750,32 @@ APNIC Academy            : (No public profile available yet)
       parentId: apnicDir._id,
       size: randSize(),
       url: "/files/Routing_fundamentals.pdf",
+    });
+    const gcsbDir = await File.create({
+      name: "GCSB",
+      type: "directory",
+      parentId: certificatesDir._id,
+      permissions: "drwxr-xr-x",
+      size: 512,
+    });
+    await File.create({
+      name: "too_many_files.txt",
+      type: "file",
+      parentId: gcsbDir._id,
+      size: 768,
+      content: `
+                                                                                   _^_
+                                                                                   |#|
+    _____                 . . . . . o o o o o                                     |===|
+  __|[_]|__ ___________ _______    ____      o                                     |0|
+ |[] [] []| [] [] [] [] [_____(__  ][]]_n_n__][.                                   | |
+_|________|_[_________]_[________]_|__|________)<                                 =====
+  oo    oo 'oo      oo ' oo    oo 'oo 0000---oo?                                 _||_||_
+ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+https://www.cloudskillsboost.google/public_profiles/db471e45-8fdb-4a50-9c56-7487abacfab0
+
+'Every character in this URL maybe represent my badge, not even the train can reach it.'
+`,
     });
 
     // /home/guest/Organizations
